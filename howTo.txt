@@ -1,0 +1,47 @@
+sudo apt-get update
+sudo apt-get install gawk wget git diffstat unzip texinfo gcc build-essential \
+chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
+iputils-ping python3-git python3-jinja2 libegl1-mesa libsdl1.2-dev pylint xterm zstd liblz4-tool
+
+create directory for yocto project and enter to directory
+
+mkdir yocto-zturn && cd yocto-zturn
+
+# Скачиваем ядро Yocto (Poky)
+git clone -b scarthgap https://git.yoctoproject.org/poky
+
+# Скачиваем аппаратные слои Xilinx
+git clone -b scarthgap https://git.yoctoproject.org/meta-xilinx
+git clone -b scarthgap https://github.com/openembedded/meta-openembedded.git
+
+git clone -b scarthgap https://git.yoctoproject.org/meta-arm
+
+source poky/oe-init-build-env
+
+# Копируем файлы дерева устройств в Yocto
+# Переходим в папку билда Yocto
+cd ~/wrk/myproj/xilinx/yocto/bld_zturn/
+
+# Копируем сам DTS платы
+cp /путь/к/zturn/04-Linux_Source/Kernel/linux-xlnx/arch/arm/boot/dts/zynq-zturn.dts ./conf/
+
+# КРИТИЧЕСКИ ВАЖНО: Копируем инклуд-файл самого процессора Zynq (он нужен для сборки)
+cp /путь/к/zturn/04-Linux_Source/Kernel/linux-xlnx/arch/arm/boot/dts/zynq-7000.dtsi ./conf/
+
+MACHINE = "zynq-generic"
+IMAGE_FSTYPES = "wic wic.gz cpio.gz"
+CONFIG_DTFILE = "${TOPDIR}/conf/zynq-zturn.dts"
+
+bitbake-layers add-layer ../meta-openembedded/meta-oe
+bitbake-layers add-layer ../meta-arm/meta-arm-toolchain
+bitbake-layers add-layer ../meta-arm/meta-arm
+bitbake-layers add-layer ../meta-xilinx/meta-xilinx-core
+bitbake-layers add-layer ../meta-xilinx/meta-xilinx-bsp
+bitbake-layers add-layer ../meta-xilinx/meta-xilinx-vendor
+
+
+bitbake core-image-minimal
+
+
+sudo dd if=tmp/deploy/images/z-turn-zynq7/core-image-minimal-z-turn-zynq7.wic of=/dev/sdX bs=4M status=progress && sync
+runqemu zynq-generic core-image-minimal
