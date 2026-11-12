@@ -1,0 +1,22 @@
+# Внешние слои Yocto
+/poky/
+/meta-arm/
+/meta-openembedded/
+/meta-xilinx/
+
+# Временная исходная папка (всё уже перенесено в meta-zturn-bsp)
+/custom_bsp/
+
+# Игнорируем всю директорию сборки, кроме двух ключевых конфигов
+/zturn_build/*
+!/zturn_build/conf/
+/zturn_build/conf/*
+!/zturn_build/conf/local.conf
+!/zturn_build/conf/bblayers.conf
+
+# Временные файлы
+*.pyc
+__pycache__/
+*.swp
+*~
+
